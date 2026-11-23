@@ -145,6 +145,10 @@
             tags: (Array.isArray(c.tags) ? c.tags : String(c.tags || '').split(',')).map(function (t) { return ligne(t, 40).replace(/^#/, '').toLowerCase(); }).filter(function (t, k, a) { return t && a.indexOf(t) === k; }),
             contenu: String(c.contenu || ''), cree: ex ? ex.cree || now : now, modifie: now
           };
+          if (['transmis', 'examen', 'valide', 'a-revoir'].indexOf(c.suivi) !== -1) {
+            e.suivi = c.suivi; e.suiviPar = ligne(c.suiviPar, 80);
+            e.suiviDate = /^\d{4}-\d{2}-\d{2}$/.test(c.suiviDate || '') ? c.suiviDate : now.slice(0, 10);
+          }
           if (!d.rubriques.some(function (r) { return r.id === e.rubrique; })) {
             var label = ligne(c.rubriqueLabel || c.rubrique, 40) || e.rubrique;
             d.rubriques.push({ id: e.rubrique, label: label, singulier: label.replace(/s$/i, '') });
@@ -214,7 +218,8 @@
 
 </script>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta property="og:site_name" content="Casier d'Arumi Tenzo"><meta property="og:title" content="Casier d'Arumi Tenzo · Section scientifique"><meta property="og:description" content="Rapports, découvertes et remarques de la section scientifique du village caché de la Feuille."><meta property="og:type" content="website"><meta name="theme-color" content="#2e8b57">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#eef0f4">
   <title>Casier d'Arumi Tenzo</title>
@@ -1509,6 +1514,104 @@ body { background: #eceef2; }
   <script>
     document.documentElement.dataset.theme = 'light';
   </script>
+<style id="ajouts-partage">
+/* ==========================================================
+   Suivi, bilan, version officielle (PDF)
+   ========================================================== */
+:root { --s-transmis: #2f6fd6; --s-examen: #d9822b; --s-valide: #2e8b57; --s-a-revoir: #c8322b; --s-aucun: #8a909c; }
+.s-transmis { --s: var(--s-transmis); } .s-examen { --s: var(--s-examen); } .s-valide { --s: var(--s-valide); } .s-a-revoir { --s: var(--s-a-revoir); } .s-aucun { --s: var(--s-aucun); }
+
+.tableau .btn-bilan { font-family: var(--marqueur); font-weight: 400; font-size: 1.05rem; background: transparent; box-shadow: none; color: var(--feutre-noir);
+  border: 2.5px solid var(--feutre-noir); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; }
+.tableau .btn-bilan:hover { transform: rotate(-1.5deg); }
+
+/* Badges de suivi */
+.suivi-mini, .suivi-badge { display: inline-flex; align-items: center; gap: 4px; color: var(--s); font-weight: 700; white-space: nowrap; }
+.suivi-mini { font-size: .75rem; padding: 1px 8px 1px 5px; border-radius: 999px; border: 1.5px solid var(--s); background: color-mix(in srgb, var(--s) 10%, transparent); }
+.suivi-mini .ic { width: 12px; height: 12px; stroke-width: 3; }
+.fiche-bas-droite { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.suivi-ligne { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 12px; }
+.suivi-badge { font-family: var(--marqueur); font-weight: 400; font-size: 1rem; letter-spacing: .02em; padding: 3px 12px 3px 8px;
+  border: 2.5px solid var(--s); border-radius: 6px; transform: rotate(-1.5deg); white-space: normal; }
+.suivi-badge .ic { width: 16px; height: 16px; stroke-width: 3; flex: none; }
+.suivi-badge.s-aucun { border-style: dashed; }
+.btn-suivi { font-size: .9rem; }
+.ref-ecran { font-size: .85em; opacity: .75; }
+
+/* Champs de suivi (éditeur et fenêtre) */
+.bloc-suivi > span { font-size: .82rem; font-weight: 600; color: var(--texte-2); }
+.ligne-suivi { display: grid; grid-template-columns: 1.1fr 1.3fr 1fr; gap: 8px; }
+.ligne-suivi select, .ligne-suivi input { min-height: 44px; padding: .45rem .7rem; border-radius: 10px; font: inherit; font-size: .98rem; font-weight: 400; color: var(--texte);
+  border: 1px solid var(--ligne); background: var(--surface-2); width: 100%; min-width: 0; }
+.ligne-suivi input:disabled { opacity: .5; }
+.modal .bloc-suivi { text-align: left; margin-top: 8px; }
+.modal .ligne-suivi { grid-template-columns: 1fr; }
+@media (max-width: 640px) { .ligne-suivi { grid-template-columns: 1fr; } }
+
+/* Bilan */
+.bascule { display: inline-flex; gap: 0; }
+.tableau-page .lecture-haut .bascule .btn { border-radius: 0; }
+.tableau-page .lecture-haut .bascule .btn:first-child { border-radius: 255px 0 0 15px / 15px 0 0 255px; }
+.tableau-page .lecture-haut .bascule .btn:last-child { border-radius: 0 15px 225px 0 / 0 225px 15px 0; margin-left: -2.5px; }
+.tableau-page .lecture-haut .bascule .btn.actif { background: var(--feutre-noir); color: #fff; }
+.bilan-nav { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.bilan-nav .chip { min-width: 0; }
+.bilan-nav .btn { font-size: 1.3rem; min-width: 44px; justify-content: center; }
+.bilan-chiffres { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; padding: 6px 0 14px; border-bottom: 2px dashed var(--ligne); }
+.bilan-chiffres > div { display: flex; align-items: center; gap: 8px; color: var(--c, var(--feutre-noir)); }
+.bilan-chiffres b { font-family: var(--marqueur); font-weight: 400; font-size: 2rem; line-height: 1; }
+.bilan-chiffres small { font-family: var(--main); font-size: 1.05rem; color: var(--feutre-noir); }
+.bilan-chiffres .pastille-ic { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--c); color: #fff; }
+.bilan-chiffres .pastille-ic .ic { width: 15px; height: 15px; }
+.bc-total { padding-right: 22px; border-right: 2px solid var(--ligne); }
+.bilan-suivis { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+.bilan-rubrique { margin-top: 26px; }
+.bilan-rubrique h2 { font-family: var(--marqueur); font-weight: 400; color: var(--c); font-size: 1.5rem; margin: 0 0 8px; display: flex; align-items: center; gap: 10px; }
+.bilan-rubrique h2 .nb { font-size: 1rem; color: #fff; background: var(--c); border-radius: 999px; padding: 0 9px; }
+.bilan-rubrique ol { list-style: none; margin: 0; padding: 0; }
+.bilan-rubrique li { border-left: 3px solid var(--c); margin: 0 0 10px; break-inside: avoid; }
+.bilan-rubrique li a { display: flex; gap: 14px; padding: 8px 12px; color: inherit; text-decoration: none; border-radius: 0 10px 10px 0; }
+.bilan-rubrique li a:hover { background: color-mix(in srgb, var(--c) 8%, transparent); }
+.bl-date { flex: none; width: 82px; font-family: var(--marqueur); color: var(--c); font-size: .95rem; padding-top: 2px; }
+.bl-corps { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.bl-corps b { font-size: 1.05rem; color: var(--texte); }
+.bl-infos { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.bl-infos .statut { position: static; transform: none; margin: 0; font-size: .7rem; }
+.bl-ref { font-size: .75rem; color: var(--texte-3); letter-spacing: .03em; }
+.bl-resume { font-size: .92rem; color: var(--texte-2); }
+@media (max-width: 600px) { .bilan-rubrique li a { flex-direction: column; gap: 2px; } .bl-date { width: auto; } .bc-total { border: 0; padding: 0; } }
+
+/* Version officielle : invisible à l'écran, visible à l'impression */
+.entete-officiel, .bloc-signature { display: none; }
+.vue-bilan .bloc-signature { display: none; }
+
+@page { @bottom-right { content: "Page " counter(page) " / " counter(pages); font: 9pt "Outfit", sans-serif; color: #777; } }
+@media print {
+  .tableau-titre, .signature, .btn-suivi, .bilan-nav .btn, .ref-ecran, .suivi-badge.s-aucun { display: none !important; }
+  .tableau-page .vue > .article { border: 0 !important; }
+  .entete-officiel { display: grid !important; grid-template-columns: 64px 1fr auto; align-items: center; gap: 14px;
+    padding: 0 0 12px; margin: 0 0 6px; border-bottom: 3px double #222; color: #222; font-family: "Outfit", sans-serif; }
+  .eo-embleme svg { width: 60px; height: 60px; color: #2e6b47; }
+  .eo-titres { display: flex; flex-direction: column; line-height: 1.25; }
+  .eo-village { font-family: var(--marqueur); font-size: 16pt; letter-spacing: .03em; }
+  .eo-section { font-size: 9.5pt; text-transform: uppercase; letter-spacing: .12em; color: #555; }
+  .eo-nature { margin-top: 3px; font-family: var(--marqueur); font-size: 12pt; color: #b3261e; text-transform: uppercase; letter-spacing: .05em; }
+  .eo-ref { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 9pt; color: #444; text-align: right; }
+  .eo-ref b { color: #111; }
+  .bloc-signature, .vue-bilan .bloc-signature { display: flex !important; justify-content: space-between; align-items: center; gap: 20px;
+    margin-top: 36px; padding-top: 16px; border-top: 1px solid #bbb; break-inside: avoid; font-family: "Outfit", sans-serif; color: #333; }
+  .bs-texte { display: flex; flex-direction: column; gap: 3px; font-size: 10pt; }
+  .bs-nom { margin-top: 14px; font-family: var(--marqueur); font-size: 20pt; color: #1b3a8c; transform: rotate(-3deg); transform-origin: left; }
+  .bs-role { font-size: 9pt; color: #666; text-transform: uppercase; letter-spacing: .1em; }
+  .bs-suivi { margin-top: 10px; align-self: flex-start; padding: 3px 10px; border: 2.5px solid var(--s); color: var(--s); font-family: var(--marqueur); font-size: 12pt; transform: rotate(-2deg); text-transform: uppercase; }
+  .bs-sceau { flex: none; width: 112px; height: 112px; color: #b3261e; opacity: .85; transform: rotate(-12deg); }
+  .bs-sceau svg { width: 100%; height: 100%; }
+  .suivi-badge { transform: none; }
+  .bilan-rubrique li a { padding: 4px 10px; }
+  .vue-bilan .article-tete { padding-bottom: 6px; }
+}
+</style>
+
 <style id="allegement">
 /* Allègement : un flou posé sur un décor animé oblige le navigateur à tout recalculer à chaque image. */
 *, *::before, *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
@@ -1719,6 +1822,8 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
     dossiers: '<path d="M4 6h16M4 12h16M4 18h10"/>',
     retour: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
     filtre: '<path d="M4 6h16M7 12h10M10 18h4"/>',
+    bilan: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M8 14h3M8 17h6"/>',
+    suivi: '<path d="M4 12l5 5L20 6"/>',
   };
   function icone(nom) { return SVG_DEB + (ICONES_SVG[nom] || ICONES_SVG.autre) + '</svg>'; }
   function iconeRub(id) { return icone(ICONES_SVG[id] ? id : 'autre'); }
@@ -1732,7 +1837,83 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
   var CLE_MDP = 'casier-archiviste';
   var MDP = null; // mot de passe de l'archiviste quand il est connecté
 
-  var etat = { rubrique: 'tout', q: '', type: '', auteur: '', tags: [], du: '', au: '', tri: 'recent', filtres: false };
+  var etat = { rubrique: 'tout', q: '', type: '', auteur: '', suivi: '', tags: [], du: '', au: '', tri: 'recent', filtres: false };
+
+  // ---- Suivi des documents par les supérieurs ----
+  var SUIVIS = [
+    { id: 'transmis', label: 'Transmis', par: 'à' },
+    { id: 'examen', label: 'En cours d\'examen', par: 'par' },
+    { id: 'valide', label: 'Validé', par: 'par' },
+    { id: 'a-revoir', label: 'À revoir', par: 'par' },
+  ];
+  function suiviInfo(id) { for (var i = 0; i < SUIVIS.length; i++) if (SUIVIS[i].id === id) return SUIVIS[i]; return null; }
+  function suiviTexte(e, court) {
+    var s = suiviInfo(e.suivi); if (!s) return '';
+    return s.label + (e.suiviPar ? ' ' + s.par + ' ' + e.suiviPar : '') + (!court && e.suiviDate ? ' · ' + dateCourte(e.suiviDate) : '');
+  }
+  function badgeSuivi(e, classe, court) {
+    var s = suiviInfo(e.suivi); if (!s) return '';
+    return '<span class="' + classe + ' s-' + s.id + '" title="Suivi : ' + esc(suiviTexte(e)) + '">' + icone('suivi') + esc(court ? s.label : suiviTexte(e)) + '</span>';
+  }
+
+  // ---- Liens de partage (une petite page par document, avec aperçu pour Discord) ----
+  function fichierPartage(id) { return 'r/' + String(id).replace(/\//g, '--') + '.html'; }
+  function adresseSite() { return location.href.split('#')[0].replace(/[^\/]*$/, ''); }
+  function preparerLien(bouton, chemin, repli) {
+    bouton.dataset.lien = repli;
+    if (!/\.github\.io$/.test(location.hostname)) return;
+    fetch(chemin + '?v=' + Date.now(), { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      if (r.ok) bouton.dataset.lien = adresseSite() + chemin;
+    }).catch(function () {});
+  }
+  function brancherCopie(bouton) {
+    bouton.addEventListener('click', function () {
+      var url = bouton.dataset.lien || location.href;
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { toast('Lien copié, prêt à coller'); }).catch(function () { window.prompt('Copie ce lien :', url); });
+    });
+  }
+
+  // ---- Références et périodes ----
+  function reference(e) {
+    var pre = { rapports: 'RAP', decouvertes: 'DEC', remarques: 'REM' }[e.rubrique] || norm(e.rubrique).replace(/[^a-z]/g, '').slice(0, 3).toUpperCase() || 'DOC';
+    var fin = String(e.id || '').split('-').pop().slice(0, 4).toUpperCase();
+    return pre + '-' + String(e.date || '').replace(/-/g, '') + '-' + fin;
+  }
+  function isoUTC(d) { return d.toISOString().slice(0, 10); }
+  function semaineDe(iso) {
+    var d = new Date(iso + 'T00:00:00Z'), j = (d.getUTCDay() + 6) % 7;
+    d.setUTCDate(d.getUTCDate() - j + 3);
+    var an = d.getUTCFullYear(), j4 = new Date(Date.UTC(an, 0, 4));
+    var n = 1 + Math.round((d - j4) / 864e5 / 7 + ((j4.getUTCDay() + 6) % 7 - 3) / 7);
+    return an + '-S' + String(n).padStart(2, '0');
+  }
+  function bornes(periode) {
+    var m = /^(\d{4})-S(\d{2})$/.exec(periode);
+    if (m) {
+      var j4 = new Date(Date.UTC(+m[1], 0, 4));
+      var lundi = new Date(+j4 - ((j4.getUTCDay() + 6) % 7) * 864e5 + (+m[2] - 1) * 7 * 864e5);
+      return [isoUTC(lundi), isoUTC(new Date(+lundi + 6 * 864e5))];
+    }
+    m = /^(\d{4})-(\d{2})$/.exec(periode);
+    if (m) return [periode + '-01', isoUTC(new Date(Date.UTC(+m[1], +m[2], 0)))];
+    return null;
+  }
+  function periodeVoisine(periode, sens) {
+    var b = bornes(periode);
+    if (/-S/.test(periode)) return semaineDe(isoUTC(new Date(Date.parse(b[0] + 'T00:00:00Z') + sens * 7 * 864e5)));
+    var a = +periode.slice(0, 4), mo = +periode.slice(5, 7) - 1 + sens, d = new Date(Date.UTC(a, mo, 1));
+    return isoUTC(d).slice(0, 7);
+  }
+  function nomPeriode(periode) {
+    var b = bornes(periode); if (!b) return '';
+    if (/-S/.test(periode)) {
+      var d1 = b[0].split('-'), d2 = b[1].split('-');
+      var debut = (+d1[2]) + (d1[2] === '01' ? 'er' : '') + (d1[1] !== d2[1] ? ' ' + MOIS[+d1[1] - 1] : '') + (d1[0] !== d2[0] ? ' ' + d1[0] : '');
+      return { titre: 'Bilan de la semaine ' + (+periode.slice(6)), sous: 'du ' + debut + ' au ' + dateLongue(b[1]) };
+    }
+    var mo = MOIS[+periode.slice(5, 7) - 1];
+    return { titre: 'Bilan du mois de ' + mo, sous: mo.charAt(0).toUpperCase() + mo.slice(1) + ' ' + periode.slice(0, 4) };
+  }
 
   function rubrique(id) {
     for (var i = 0; i < DATA.rubriques.length; i++) if (DATA.rubriques[i].id === id) return DATA.rubriques[i];
@@ -1744,7 +1925,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
   function preparer() {
     DATA.entrees.forEach(function (e) {
       e.tags = e.tags || [];
-      e._recherche = norm([e.titre, e.auteur, e.type, e.statut, e.tags.join(' '), texteDeMD(e.contenu)].join(' '));
+      e._recherche = norm([e.titre, e.auteur, e.type, e.statut, suiviTexte(e), e.tags.join(' '), texteDeMD(e.contenu)].join(' '));
     });
   }
   function trouver(id) { return DATA.entrees.filter(function (x) { return x.id === id; })[0]; }
@@ -1918,6 +2099,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       if (m && MDP) return vueEditeur(m);
     }
     if (h === 'archiviste' && MDP) return vueCoffre();
+    if (h === 'bilan' || h.indexOf('bilan/') === 0) return vueBilan(h.slice(6));
     vueListe();
   }
 
@@ -1930,6 +2112,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       if (etat.rubrique !== 'tout' && e.rubrique !== etat.rubrique) return false;
       if (etat.type && e.type !== etat.type) return false;
       if (etat.auteur && e.auteur !== etat.auteur) return false;
+      if (etat.suivi && (e.suivi || 'aucun') !== etat.suivi) return false;
       if (etat.du && e.date < etat.du) return false;
       if (etat.au && e.date > etat.au) return false;
       for (var i = 0; i < etat.tags.length; i++) if (e.tags.indexOf(etat.tags[i]) === -1) return false;
@@ -1940,7 +2123,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
     else if (etat.tri === 'titre') res = res.slice().sort(function (a, b) { return a.titre.localeCompare(b.titre, 'fr'); });
     return res;
   }
-  function nbFiltres() { return (etat.type ? 1 : 0) + (etat.auteur ? 1 : 0) + (etat.du ? 1 : 0) + (etat.au ? 1 : 0) + etat.tags.length + (etat.tri !== 'recent' ? 1 : 0); }
+  function nbFiltres() { return (etat.type ? 1 : 0) + (etat.auteur ? 1 : 0) + (etat.suivi ? 1 : 0) + (etat.du ? 1 : 0) + (etat.au ? 1 : 0) + etat.tags.length + (etat.tri !== 'recent' ? 1 : 0); }
   function valeurs(champ, base) {
     var vus = {};
     base.forEach(function (e) { var v = e[champ]; (Array.isArray(v) ? v : [v]).forEach(function (x) { if (x) vus[x] = (vus[x] || 0) + 1; }); });
@@ -1989,13 +2172,14 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       '<label for="q" class="sr">Rechercher</label>' +
       '<input id="q" type="search" placeholder="Chercher un mot, un nom, un tag…" value="' + esc(etat.q) + '" autocomplete="off" enterkeyhint="search">' +
       (etat.q ? '<button class="effacer" id="effacer-q" type="button" aria-label="Effacer">✕</button>' : '') +
-      '</div>' + (MDP ? '<a class="btn btn-ecrire" href="#/ecrire">' + icone('crayon') + ' <span class="libelle">Écrire</span></a>' : '') + '<button class="btn btn-filtres" id="btn-filtres" type="button" aria-expanded="' + etat.filtres + '">' + icone('filtre') + ' <span class="libelle">Filtres</span>' +
+      '</div>' + (MDP ? '<a class="btn btn-ecrire" href="#/ecrire">' + icone('crayon') + ' <span class="libelle">Écrire</span></a>' : '') + '<a class="btn btn-bilan" href="#/bilan" title="Bilan de la semaine ou du mois">' + icone('bilan') + ' <span class="libelle">Bilan</span></a><button class="btn btn-filtres" id="btn-filtres" type="button" aria-expanded="' + etat.filtres + '">' + icone('filtre') + ' <span class="libelle">Filtres</span>' +
       (nf ? ' <span class="pastille">' + nf + '</span>' : '') + '</button></div>';
 
     var types = valeurs('type', base), auteurs = valeurs('auteur', base), tags = valeurs('tags', base);
     h += '<div class="filtres"' + (etat.filtres ? '' : ' hidden') + '>' +
       choix('f-type', 'Type', etat.type, types, 'Tous') +
       choix('f-auteur', 'Auteur', etat.auteur, auteurs, 'Tous') +
+      '<label class="champ">Suivi<select id="f-suivi">' + opt('', 'Tous', etat.suivi) + SUIVIS.map(function (x) { return opt(x.id, x.label, etat.suivi); }).join('') + opt('aucun', 'Sans suivi', etat.suivi) + '</select></label>' +
       '<label class="champ">Du<input type="date" id="f-du" value="' + esc(etat.du) + '"></label>' +
       '<label class="champ">Au<input type="date" id="f-au" value="' + esc(etat.au) + '"></label>' +
       '<label class="champ">Ordre<select id="f-tri">' + opt('recent', 'Plus récent', etat.tri) + opt('ancien', 'Plus ancien', etat.tri) + opt('titre', 'Titre A → Z', etat.tri) + '</select></label>' +
@@ -2062,7 +2246,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       '<p>' + esc(resume(e)) + '</p>' +
       (e.tags.length ? '<span class="tags">' + e.tags.slice(0, 4).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</span>' : '') +
       '<span class="fiche-bas">' + (e.auteur ? '<span class="auteur-mini"><span class="avatar">' + esc(initiales(e.auteur)) + '</span>' + esc(e.auteur) + '</span>' : '<span></span>') +
-      (e.type ? '<span class="type-mini">' + esc(e.type) + '</span>' : '') + '</span></a>';
+      '<span class="fiche-bas-droite">' + badgeSuivi(e, 'suivi-mini', true) + (e.type ? '<span class="type-mini">' + esc(e.type) + '</span>' : '') + '</span></span></a>';
   }
 
   function rafraichir() {
@@ -2094,7 +2278,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
     var eff = $('#effacer-q');
     if (eff) eff.addEventListener('click', function () { etat.q = ''; garderPosition(vueListe); $('#q').focus(); });
     $('#btn-filtres').addEventListener('click', function () { etat.filtres = !etat.filtres; garderPosition(vueListe); });
-    [['f-type', 'type'], ['f-auteur', 'auteur'], ['f-du', 'du'], ['f-au', 'au'], ['f-tri', 'tri']].forEach(function (p) {
+    [['f-type', 'type'], ['f-auteur', 'auteur'], ['f-suivi', 'suivi'], ['f-du', 'du'], ['f-au', 'au'], ['f-tri', 'tri']].forEach(function (p) {
       $('#' + p[0]).addEventListener('change', function (ev) { etat[p[1]] = ev.target.value; garderPosition(vueListe); });
     });
     $$('#f-tags .tag').forEach(function (b) {
@@ -2107,7 +2291,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
     $$('[data-periode]').forEach(function (b) {
       b.addEventListener('click', function () { etat.du = aujourdhui(+b.dataset.periode); etat.au = aujourdhui(0); garderPosition(vueListe); });
     });
-    var reinit = function () { etat.q = ''; etat.type = ''; etat.auteur = ''; etat.tags = []; etat.du = ''; etat.au = ''; etat.tri = 'recent'; garderPosition(vueListe); };
+    var reinit = function () { etat.q = ''; etat.type = ''; etat.auteur = ''; etat.suivi = ''; etat.tags = []; etat.du = ''; etat.au = ''; etat.tri = 'recent'; garderPosition(vueListe); };
     $('#reinit').addEventListener('click', reinit);
     if ($('#reinit2')) $('#reinit2').addEventListener('click', reinit);
   }
@@ -2130,17 +2314,20 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       (MDP ? '<a class="btn" href="#/modifier/' + encodeURIComponent(e.id) + '">' + icone('crayon') + ' Modifier</a><button type="button" class="btn btn-danger" id="supprimer">' + icone('poubelle') + ' <span class="libelle">Supprimer</span></button>' : '') +
       '<button type="button" class="btn" id="imprimer" title="Imprimer ou enregistrer en PDF">' + ICONE_IMPRIMER + ' <span class="libelle">PDF</span></button>' +
       '<button type="button" class="btn" id="copier" title="Copier le lien">' + icone('lien') + ' <span class="libelle">Copier le lien</span></button></span></div>' +
-      '<article class="article">' +
+      '<article class="article">' + enteteOfficiel(r.singulier + (e.type ? ' ' + e.type.toLowerCase() : ''), reference(e), e.statut || 'Diffusion interne') +
       '<header class="article-tete" style="--c:' + c + '">' +
       '<span class="chip"><span class="pastille-ic">' + iconeRub(e.rubrique) + '</span>' + esc(r.singulier) + (e.type ? ' · ' + esc(e.type) : '') + '</span>' +
       (e.statut ? '<span class="statut">' + esc(e.statut) + '</span>' : '') +
       '<h1>' + esc(e.titre) + '</h1>' +
-      '<div class="meta"><span>' + esc(dateLongue(e.date)) + '</span>' + (e.auteur ? '<span>par ' + esc(e.auteur) + '</span>' : '') + '</div>' +
+      '<div class="meta"><span>' + esc(dateLongue(e.date)) + '</span>' + (e.auteur ? '<span>par ' + esc(e.auteur) + '</span>' : '') + '<span class="ref-ecran">Réf. ' + esc(reference(e)) + '</span></div>' +
+      '<div class="suivi-ligne">' + (badgeSuivi(e, 'suivi-badge') || (MDP ? '<span class="suivi-badge s-aucun">' + icone('suivi') + 'Pas encore transmis</span>' : '')) +
+      (MDP ? '<button type="button" class="btn btn-discret btn-suivi" id="changer-suivi">Changer le suivi</button>' : '') + '</div>' +
       (e.tags.length ? '<div class="tags">' + e.tags.map(function (t) { return '<button type="button" class="tag" data-tag="' + esc(t) + '" title="Voir les documents avec ce tag">' + esc(t) + '</button>'; }).join('') + '</div>' : '') +
       '</header><div class="article-corps">' +
       '<div class="texte">' + rendreMD(e.contenu) + '</div>' +
       '<footer class="signature"><span class="avatar">' + esc(initiales(e.auteur)) + '</span><span>' + (e.auteur ? 'Rédigé par <b>' + esc(e.auteur) + '</b><br>' : '') +
       '<small>' + (e.modifie && e.cree && e.modifie !== e.cree ? 'Modifié le ' + esc(quand(e.modifie)) : esc(dateLongue(e.date))) + '</small></span></footer>' +
+      blocSignature(e.auteur, e.date, suiviInfo(e.suivi) ? e : null) +
       '</div></article>';
 
     if (prec || suiv) {
@@ -2169,10 +2356,9 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       setTimeout(function () { tp.remove(); }, 3400);
     }
 
-    $('#copier').addEventListener('click', function () {
-      var url = location.href;
-      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { toast('Lien copié'); }).catch(function () { window.prompt('Copie ce lien :', url); });
-    });
+    preparerLien($('#copier'), fichierPartage(e.id), location.href);
+    brancherCopie($('#copier'));
+    if ($('#changer-suivi')) $('#changer-suivi').addEventListener('click', function () { changerSuivi(e); });
     $$('.article-tete .tags .tag').forEach(function (b) {
       b.addEventListener('click', function () { etat.rubrique = 'tout'; etat.tags = [b.dataset.tag]; etat.q = ''; etat.filtres = true; location.hash = '#/'; });
     });
@@ -2185,6 +2371,117 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
         }).catch(gererErreur);
       });
     });
+  }
+
+  // ---- Suivi : champs, fenêtre de changement rapide ----
+  function champsSuivi(v, pre) {
+    var pars = valeurs('suiviPar', DATA.entrees);
+    return '<div class="champ large bloc-suivi"><span>Suivi <span class="aide">où en est ce document chez tes supérieurs</span></span><div class="ligne-suivi">' +
+      '<select id="' + pre + 'suivi" aria-label="Suivi">' + opt('', '— Pas encore transmis —', v.suivi) + SUIVIS.map(function (x) { return opt(x.id, x.label, v.suivi); }).join('') + '</select>' +
+      '<input id="' + pre + 'suiviPar" list="' + pre + 'l-pars" maxlength="80" placeholder="Supérieur (ex. Hokage)" aria-label="Supérieur" value="' + esc(v.suiviPar) + '">' +
+      '<input type="date" id="' + pre + 'suiviDate" aria-label="Date du suivi" value="' + esc(v.suiviDate) + '">' +
+      '<datalist id="' + pre + 'l-pars">' + pars.map(function (t) { return '<option value="' + esc(t) + '">'; }).join('') + '</datalist></div></div>';
+  }
+  function majChampsSuivi(pre) {
+    var s = $('#' + pre + 'suivi'); if (!s) return;
+    var actif = !!s.value;
+    $('#' + pre + 'suiviPar').disabled = !actif; $('#' + pre + 'suiviDate').disabled = !actif;
+    $('#' + pre + 'suiviPar').placeholder = s.value === 'transmis' ? 'Transmis à… (ex. Hokage)' : 'Par… (ex. Hokage)';
+    if (actif && !$('#' + pre + 'suiviDate').value) $('#' + pre + 'suiviDate').value = aujourdhui(0);
+  }
+  function brancherChampsSuivi(pre) {
+    var s = $('#' + pre + 'suivi'); if (!s) return;
+    s.addEventListener('change', function () { if (s.value) $('#' + pre + 'suiviDate').value = aujourdhui(0); majChampsSuivi(pre); });
+    majChampsSuivi(pre);
+  }
+  function changerSuivi(e) {
+    var box = ouvrirModal('<form id="f-suivi"><h2>Suivi du document</h2><p>« ' + esc(e.titre) + ' »</p>' +
+      champsSuivi({ suivi: e.suivi || '', suiviPar: e.suiviPar || '', suiviDate: e.suiviDate || '' }, 'm-') +
+      '<p class="erreur" id="m-err" role="alert"></p><div class="boutons"><button class="btn" type="button" id="m-annuler">Annuler</button><button class="btn btn-principal" type="submit" id="m-ok">Enregistrer</button></div></form>');
+    brancherChampsSuivi('m-');
+    $('#m-annuler').onclick = fermerModal;
+    $('#f-suivi').onsubmit = function (ev) {
+      ev.preventDefault();
+      var btn = $('#m-ok'); btn.disabled = true; btn.textContent = 'Enregistrement…';
+      api('entree', { method: 'PUT', json: {
+        id: e.id, rubrique: e.rubrique, titre: e.titre, date: e.date, auteur: e.auteur, type: e.type, statut: e.statut, tags: e.tags, contenu: e.contenu,
+        suivi: $('#m-suivi').value, suiviPar: $('#m-suiviPar').value, suiviDate: $('#m-suiviDate').value,
+      } }).then(function (d) {
+        fermerModal(); recevoir(d);
+        var s = suiviInfo(d.entree.suivi);
+        tamponAJouer = s ? s.label : null;
+        toast('Suivi enregistré'); route();
+      }).catch(function (err) { btn.disabled = false; btn.textContent = 'Enregistrer'; $('#m-err').textContent = err.message || 'Erreur'; });
+    };
+  }
+
+  // ---- Version officielle (impression / PDF) ----
+  function enteteOfficiel(nature, ref, classement) {
+    return '<div class="entete-officiel" aria-hidden="true"><div class="eo-embleme">' + FEUILLE_SPIRALE + '</div>' +
+      '<div class="eo-titres"><span class="eo-village">Village caché de la Feuille</span><span class="eo-section">Section scientifique · Casier d\'Arumi Tenzo</span>' +
+      '<span class="eo-nature">' + esc(nature) + '</span></div>' +
+      '<div class="eo-ref"><span>Réf. <b>' + esc(ref) + '</b></span><span>Classement : <b>' + esc(classement) + '</b></span></div></div>';
+  }
+  function blocSignature(auteur, date, suivi) {
+    return '<div class="bloc-signature" aria-hidden="true"><div class="bs-texte"><span>Fait au laboratoire de la section scientifique, le ' + esc(dateLongue(date)) + '.</span>' +
+      '<span class="bs-nom">' + esc(auteur || 'Arumi Tenzo') + '</span><span class="bs-role">Membre de la section scientifique</span>' +
+      (suivi ? '<span class="bs-suivi s-' + esc(suivi.suivi) + '">' + esc(suiviTexte(suivi)) + '</span>' : '') + '</div>' +
+      '<div class="bs-sceau"><svg viewBox="0 0 120 120"><defs><path id="bs-cercle" d="M60 60m-43 0a43 43 0 1 1 86 0a43 43 0 1 1-86 0"/></defs>' +
+      '<circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="31" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
+      '<text font-size="11" font-weight="700" letter-spacing="2" fill="currentColor"><textPath href="#bs-cercle">SECTION SCIENTIFIQUE · KONOHA ·</textPath></text>' +
+      '<g transform="translate(40 40) scale(.62)" color="currentColor">' + FEUILLE_SPIRALE.replace('<svg ', '<svg width="64" height="64" ') + '</g></svg></div></div>';
+  }
+
+  // ================================================================
+  //  Vue : bilan de la semaine / du mois
+  // ================================================================
+  function vueBilan(periode) {
+    if (!bornes(periode)) periode = semaineDe(aujourdhui(0));
+    var b = bornes(periode), nom = nomPeriode(periode), mois = !/-S/.test(periode);
+    document.title = nom.titre + ' · Casier d\'Arumi Tenzo';
+    var docs = DATA.entrees.filter(function (e) { return e.date >= b[0] && e.date <= b[1]; })
+      .sort(function (x, y) { return x.date.localeCompare(y.date) || (x.cree || '').localeCompare(y.cree || ''); });
+    var auteurs = valeurs('auteur', docs);
+    var rubs = DATA.rubriques.filter(function (r) { return docs.some(function (e) { return e.rubrique === r.id; }); });
+    var nbSuivi = {}; docs.forEach(function (e) { nbSuivi[e.suivi || 'aucun'] = (nbSuivi[e.suivi || 'aucun'] || 0) + 1; });
+    var autre = mois ? semaineDe(b[0] > aujourdhui(0) || b[1] < aujourdhui(0) ? b[0] : aujourdhui(0)) : b[0].slice(0, 7);
+
+    var h = '<div class="vue vue-bilan"><div class="lecture-haut"><a class="btn" href="#/">' + icone('retour') + ' Retour</a><span class="groupe">' +
+      '<span class="bascule" role="group" aria-label="Période"><a class="btn' + (mois ? '' : ' actif') + '" href="#/bilan/' + (mois ? autre : periode) + '">Semaine</a><a class="btn' + (mois ? ' actif' : '') + '" href="#/bilan/' + (mois ? periode : autre) + '">Mois</a></span>' +
+      '<button type="button" class="btn" id="imprimer" title="Imprimer ou enregistrer en PDF">' + ICONE_IMPRIMER + ' <span class="libelle">PDF</span></button>' +
+      '<button type="button" class="btn" id="copier" title="Copier le lien">' + icone('lien') + ' <span class="libelle">Copier le lien</span></button></span></div>' +
+      '<article class="article bilan">' + enteteOfficiel(nom.titre, 'BIL-' + periode.replace('-', ''), 'Diffusion interne') +
+      '<header class="article-tete" style="--c:var(--vert)">' +
+      '<nav class="bilan-nav"><a class="btn btn-discret" href="#/bilan/' + periodeVoisine(periode, -1) + '" aria-label="Période précédente">←</a>' +
+      '<span class="chip"><span class="pastille-ic">' + icone('bilan') + '</span>' + esc(nom.sous) + '</span>' +
+      '<a class="btn btn-discret" href="#/bilan/' + periodeVoisine(periode, 1) + '" aria-label="Période suivante">→</a></nav>' +
+      '<h1>' + esc(nom.titre) + '</h1>' +
+      '<div class="meta"><span>' + esc(nom.sous) + '</span>' + (auteurs.length ? '<span>par ' + esc(auteurs.join(', ')) + '</span>' : '') + '</div></header>' +
+      '<div class="article-corps">';
+
+    if (!docs.length) {
+      h += '<div class="vide"><div class="grosse-ic">' + icone('vide') + '</div><p><strong>Aucun document sur cette période.</strong><br>Utilise les flèches pour changer de ' + (mois ? 'mois' : 'semaine') + '.</p></div>';
+    } else {
+      h += '<div class="bilan-chiffres">' + '<div class="bc-total"><b>' + docs.length + '</b><small>document' + (docs.length > 1 ? 's' : '') + '</small></div>' +
+        rubs.map(function (r) { var n = docs.filter(function (e) { return e.rubrique === r.id; }).length;
+          return '<div style="--c:' + couleur(r.id) + '"><span class="pastille-ic">' + iconeRub(r.id) + '</span><b>' + n + '</b><small>' + esc(n > 1 ? r.label : r.singulier) + '</small></div>'; }).join('') +
+        '</div><div class="bilan-suivis">' + SUIVIS.concat([{ id: 'aucun', label: 'Pas encore transmis' }]).filter(function (s) { return nbSuivi[s.id]; }).map(function (s) {
+          return '<span class="suivi-mini s-' + s.id + '">' + icone('suivi') + nbSuivi[s.id] + ' ' + esc(s.label.toLowerCase()) + '</span>'; }).join('') + '</div>';
+      rubs.forEach(function (r) {
+        var liste = docs.filter(function (e) { return e.rubrique === r.id; });
+        h += '<section class="bilan-rubrique" style="--c:' + couleur(r.id) + '"><h2>' + esc(r.label) + ' <span class="nb">' + liste.length + '</span></h2><ol>' + liste.map(function (e) {
+          return '<li><a href="#/e/' + encodeURIComponent(e.id) + '"><span class="bl-date">' + esc(dateCourte(e.date)) + '</span><span class="bl-corps"><b>' + esc(e.titre) + '</b>' +
+            '<span class="bl-infos">' + (e.type ? '<span class="type-mini">' + esc(e.type) + '</span>' : '') + (e.statut ? '<span class="statut">' + esc(e.statut) + '</span>' : '') + badgeSuivi(e, 'suivi-mini') + '<span class="bl-ref">' + esc(reference(e)) + '</span></span>' +
+            '<span class="bl-resume">' + esc(resume(e, 220)) + '</span></span></a></li>';
+        }).join('') + '</ol></section>';
+      });
+    }
+    h += blocSignature(auteurs[0] || 'Arumi Tenzo', b[1] < aujourdhui(0) ? b[1] : aujourdhui(0), null) + '</div></article></div>';
+    contenu.innerHTML = h;
+    window.scrollTo(0, 0);
+    $('#imprimer').addEventListener('click', function () { window.print(); });
+    preparerLien($('#copier'), 'bilan/' + periode + '.html', location.href.split('#')[0] + '#/bilan/' + periode);
+    brancherCopie($('#copier'));
   }
 
   // ================================================================
@@ -2203,8 +2500,10 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
     var auteurMemo = lire('localStorage', 'casier-auteur') || 'Arumi Tenzo';
     var v = e ? {
       rubrique: e.rubrique, titre: e.titre, date: e.date, auteur: e.auteur, type: e.type, statut: e.statut, tags: e.tags.join(', '), contenu: e.contenu,
+      suivi: e.suivi || '', suiviPar: e.suiviPar || '', suiviDate: e.suiviDate || '',
     } : {
       rubrique: rubriqueParDefaut || (etat.rubrique !== 'tout' ? etat.rubrique : 'rapports'), titre: '', date: aujourdhui(0), auteur: auteurMemo, type: '', statut: '', tags: '', contenu: '',
+      suivi: '', suiviPar: '', suiviDate: '',
     };
     var brouillon = null;
     try { brouillon = JSON.parse(lire('localStorage', cleBrouillon) || 'null'); } catch (x) {}
@@ -2230,6 +2529,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       '<label class="champ">Tampon <span class="aide">facultatif</span><input id="e-statut" list="l-statuts" maxlength="60" placeholder="ex. Confidentiel" value="' + esc(v.statut) + '"></label>' +
       '<datalist id="l-types">' + types.map(function (t) { return '<option value="' + esc(t) + '">'; }).join('') + '</datalist>' +
       '<datalist id="l-statuts">' + statuts.map(function (t) { return '<option value="' + esc(t) + '">'; }).join('') + '</datalist>' +
+      champsSuivi(v, 'e-') +
       '<div class="champ large"><label for="e-tags">Tags <span class="aide">séparés par des virgules</span></label><input id="e-tags" placeholder="ex. poison, forêt, analyse" value="' + esc(v.tags) + '">' +
       (tous.length ? '<div class="suggestions" id="sugg">' + tous.slice(0, 24).map(function (t) { return '<button type="button" class="tag" data-ajout="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') + '</div>' : '') + '</div>' +
       '</div>' +
@@ -2257,11 +2557,13 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       return {
         rubrique: $('#e-rubrique').value, titre: $('#e-titre').value, date: $('#e-date').value, auteur: $('#e-auteur').value,
         type: $('#e-type').value, statut: $('#e-statut').value, tags: $('#e-tags').value, contenu: ta.value, nouvelle: $('#e-nouvelle').value,
+        suivi: $('#e-suivi').value, suiviPar: $('#e-suiviPar').value, suiviDate: $('#e-suiviDate').value,
       };
     }
     function remplir(o) {
       if (o.rubrique && $('#e-rubrique option[value="' + o.rubrique + '"]')) $('#e-rubrique').value = o.rubrique;
-      ['titre', 'date', 'auteur', 'type', 'statut', 'tags'].forEach(function (k) { if (o[k] != null) $('#e-' + k).value = o[k]; });
+      ['titre', 'date', 'auteur', 'type', 'statut', 'tags', 'suivi', 'suiviPar', 'suiviDate'].forEach(function (k) { if (o[k] != null) $('#e-' + k).value = o[k]; });
+      majChampsSuivi('e-');
       if (o.contenu != null) ta.value = o.contenu;
       majApercu(); taille();
     }
@@ -2383,6 +2685,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       var corps = {
         id: e ? e.id : undefined, rubrique: o.rubrique, titre: o.titre, date: o.date, auteur: o.auteur,
         type: o.type, statut: o.statut, tags: o.tags.split(','), contenu: o.contenu,
+        suivi: o.suivi, suiviPar: o.suiviPar, suiviDate: o.suiviDate,
       };
       if (o.rubrique === '__nouvelle') {
         if (!o.nouvelle.trim()) { $('#e-nouvelle').focus(); return toast('Donne un nom à la nouvelle rubrique.'); }
@@ -2402,6 +2705,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
       });
     });
 
+    brancherChampsSuivi('e-');
     if (nouveau) $('#e-titre').focus();
   }
   function outil(id, ic, titre) { return '<button type="button" data-outil="' + id + '" title="' + esc(titre) + '" aria-label="' + esc(titre) + '">' + ic + '</button>'; }
@@ -2438,7 +2742,7 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
           '<button type="button" class="btn r-ok">Enregistrer</button>' + (n ? '' : '<button type="button" class="btn btn-danger r-sup">Supprimer</button>') + '</div>';
       }).join('') + '</section>' +
       '<section class="panneau"><h2>' + icone('poubelle') + 'Corbeille</h2><p>Les documents supprimés restent ici et peuvent être restaurés.</p><div id="corbeille"><p><i>Chargement…</i></p></div></section>' +
-      '<section class="panneau"><h2>' + icone('sauvegarde') + 'Sauvegarde</h2><p>Télécharge une copie complète du casier (fichier .json) à garder au chaud. Le site garde aussi automatiquement les 30 dernières versions.</p><button type="button" class="btn" id="telecharger">Télécharger une sauvegarde</button></section>' +
+      '<section class="panneau"><h2>' + icone('sauvegarde') + 'Sauvegarde</h2><p>Télécharge une copie complète du casier (fichier .json) à garder au chaud. GitHub garde aussi automatiquement toutes les versions (historique de donnees/casier.json).</p><button type="button" class="btn" id="telecharger">Télécharger une sauvegarde</button></section>' +
       '</div></div>';
     contenu.innerHTML = h;
     window.scrollTo(0, 0);
