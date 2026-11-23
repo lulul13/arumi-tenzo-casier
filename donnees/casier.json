@@ -1,0 +1,91 @@
+{
+ "rubriques": [
+  {
+   "id": "rapports",
+   "label": "Rapports",
+   "singulier": "Rapport",
+   "kanji": "報"
+  },
+  {
+   "id": "decouvertes",
+   "label": "Découvertes",
+   "singulier": "Découverte",
+   "kanji": "発"
+  },
+  {
+   "id": "remarques",
+   "label": "Remarques",
+   "singulier": "Remarque",
+   "kanji": "記"
+  }
+ ],
+ "entrees": [
+  {
+   "id": "rapports/2026-11-17-exemple-rapport-journalier",
+   "rubrique": "rapports",
+   "titre": "Exemple – Rapport journalier",
+   "date": "2026-11-17",
+   "auteur": "Arumi Tenzo",
+   "type": "Journalier",
+   "statut": "",
+   "tags": [
+    "exemple",
+    "laboratoire"
+   ],
+   "contenu": "> Ceci est un **exemple**. Tu peux supprimer ce fichier quand tu ajoutes tes vrais rapports.\n\n## Activités du jour\n\n- Analyse des échantillons ramenés par l'équipe de reconnaissance.\n- Inventaire des fioles du laboratoire.\n\n## Observations\n\nLes échantillons présentent une coloration bleutée inhabituelle.\n\n## À faire demain\n\n- [ ] Comparer avec les archives\n- [ ] Prévenir le chef de la Scientifique\n",
+   "cree": "2026-11-17T12:00:00.000Z",
+   "modifie": "2026-11-17T12:00:00.000Z"
+  },
+  {
+   "id": "rapports/2026-11-16-exemple-rapport-hebdomadaire",
+   "rubrique": "rapports",
+   "titre": "Exemple – Rapport hebdomadaire (semaine 46)",
+   "date": "2026-11-16",
+   "auteur": "Arumi Tenzo",
+   "type": "Hebdomadaire",
+   "statut": "",
+   "tags": [
+    "exemple",
+    "bilan"
+   ],
+   "contenu": "> Exemple de rapport hebdomadaire. À supprimer quand tu veux.\n\n## Résumé de la semaine\n\nSemaine calme, trois analyses terminées.\n\n| Jour | Activité | Résultat |\n|------|----------|----------|\n| Lundi | Analyse de sang | Normal |\n| Mercredi | Étude d'un parchemin | En cours |\n| Vendredi | Test d'antidote | Réussi |\n\n## Points importants\n\n1. Le stock d'herbes médicinales est bas.\n2. Une nouvelle recrue rejoint la division.\n",
+   "cree": "2026-11-16T12:00:00.000Z",
+   "modifie": "2026-11-16T12:00:00.000Z"
+  },
+  {
+   "id": "decouvertes/2026-11-15-exemple-decouverte",
+   "rubrique": "decouvertes",
+   "titre": "Exemple – Plante inconnue près de la forêt",
+   "date": "2026-11-15",
+   "auteur": "Arumi Tenzo",
+   "type": "Botanique",
+   "statut": "en cours d'étude",
+   "tags": [
+    "exemple",
+    "plante",
+    "forêt"
+   ],
+   "contenu": "> Exemple de découverte. À supprimer quand tu veux.\n\nUne plante aux feuilles argentées a été trouvée à l'est du village.\n\n## Propriétés observées\n\n- Effet calmant léger\n- **Toxique** en grande quantité\n",
+   "cree": "2026-11-15T12:00:00.000Z",
+   "modifie": "2026-11-15T12:00:00.000Z"
+  },
+  {
+   "id": "remarques/2026-11-14-exemple-remarque",
+   "rubrique": "remarques",
+   "titre": "Exemple – Rangement du laboratoire",
+   "date": "2026-11-14",
+   "auteur": "Arumi Tenzo",
+   "type": "",
+   "statut": "",
+   "tags": [
+    "exemple",
+    "organisation"
+   ],
+   "contenu": "> Exemple de remarque. À supprimer quand tu veux.\n\nMerci de bien étiqueter chaque fiole avec la date et le nom de la personne qui l'a préparée.\n",
+   "cree": "2026-11-14T12:00:00.000Z",
+   "modifie": "2026-11-14T12:00:00.000Z"
+  }
+ ],
+ "corbeille": [],
+ "maj": "2026-11-23T00:00:00.000Z"
+}
