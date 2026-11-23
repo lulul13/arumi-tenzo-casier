@@ -1518,6 +1518,10 @@ body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-st
 .rayon { mix-blend-mode: normal !important; opacity: .35; }
 .poussieres i { box-shadow: none !important; }
 @media (prefers-reduced-motion: reduce) { #scene, #scene * { animation: none !important; } }
+/* Aimants et pastilles : le tremblement au survol s'ajoute à l'apparition au lieu de la remplacer,
+   sinon l'apparition repart de zéro en quittant le survol et l'aimant disparaît un instant. */
+.vue-liste .tableau .fiche:hover::before, .tableau .vue-liste .fiche:hover::before, .tableau-page .vue-liste .fiche:hover::before { animation: aimant-pop .35s cubic-bezier(.3, 1.8, .5, 1) both, tremble .4s ease-in-out; animation-delay: 0s, 0s !important; }
+.vue-liste .tableau .stat:hover .pastille-ic, .tableau .vue-liste .stat:hover .pastille-ic, .tableau-page .vue-liste .stat:hover .pastille-ic { animation: aimant-pop .4s cubic-bezier(.3, 1.8, .5, 1) both, tremble .4s ease-in-out; animation-delay: 0s, 0s !important; }
 </style>
 </head>
 <body>
