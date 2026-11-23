@@ -1509,6 +1509,16 @@ body { background: #eceef2; }
   <script>
     document.documentElement.dataset.theme = 'light';
   </script>
+<style id="allegement">
+/* Allègement : un flou posé sur un décor animé oblige le navigateur à tout recalculer à chaque image. */
+*, *::before, *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.modal-fond { background: rgba(5, 12, 10, .72) !important; }
+/* Quand une fenêtre est ouverte (mot de passe…), le décor s'arrête. */
+body:has(.modal-fond) #scene, body:has(.modal-fond) #scene * { animation-play-state: paused !important; }
+.rayon { mix-blend-mode: normal !important; opacity: .35; }
+.poussieres i { box-shadow: none !important; }
+@media (prefers-reduced-motion: reduce) { #scene, #scene * { animation: none !important; } }
+</style>
 </head>
 <body>
   <div class="scene" id="scene" aria-hidden="true"></div>
